@@ -24,6 +24,10 @@ class MyFileVisitor extends SimpleFileVisitor<Path> {
             return FileVisitResult.CONTINUE;
         }
 
+        if (file.toFile().isDirectory()) {
+            return FileVisitResult.CONTINUE;
+        }
+
         long size = attrs.size();
 
         if (sizeToPathMap.containsKey(size)) {

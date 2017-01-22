@@ -42,4 +42,16 @@ public class MyFileVisitorTest {
 
         assertThat(visitor.getSizeToPathMap()).isEmpty();
     }
+
+    @Test
+    public void shouldNotAddDirectories() throws Exception {
+        Path root = temporaryFolder.getRoot().toPath();
+
+        MyFileVisitor visitor = new MyFileVisitor();
+
+        BasicFileAttributes attributes = Files.readAttributes(root, BasicFileAttributes.class);
+        visitor.visitFile(root, attributes);
+
+        assertThat(visitor.getSizeToPathMap()).isEmpty();
+    }
 }
