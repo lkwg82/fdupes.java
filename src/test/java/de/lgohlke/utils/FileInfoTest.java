@@ -5,6 +5,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,6 +20,24 @@ public class FileInfoTest {
 
         int inode = new FileInfo(file.toPath()).getInode();
         assertThat(inode).isGreaterThan(0);
+    }
+
+    @Test
+    public void shouldHaveExactOneHardLink() throws Exception {
+        File file = temporaryFolder.newFile();
+
+        int hardlinks = new FileInfo(file.toPath()).getHardlinks();
+        assertThat(hardlinks).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldHaveExactTwoHardLink() throws Exception {
+        File file = temporaryFolder.newFile();
+
+        Files.createLink(Paths.get(file.toPath().toAbsolutePath() + "2"), file.toPath());
+
+        int hardlinks = new FileInfo(file.toPath()).getHardlinks();
+        assertThat(hardlinks).isEqualTo(2);
     }
 
     @Test

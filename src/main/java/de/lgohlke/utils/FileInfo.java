@@ -18,6 +18,10 @@ class FileInfo {
         return readAttributeAsInt(path, "unix:dev");
     }
 
+    int getHardlinks() throws IOException {
+        return readAttributeAsInt(path, "unix:nlink");
+    }
+
     private static int readAttributeAsInt(Path path, String attribute) throws IOException {
         return Integer.valueOf(Files.getAttribute(path, attribute).toString());
     }
