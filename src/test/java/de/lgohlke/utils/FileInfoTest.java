@@ -41,6 +41,20 @@ public class FileInfoTest {
     }
 
     @Test
+    public void shouldReturnUID() throws Exception {
+        int uid = new FileInfo(temporaryFolder.getRoot().toPath()).getUid();
+
+        assertThat(uid).isNotZero();
+    }
+
+    @Test
+    public void shouldReturnGID() throws Exception {
+        int gid = new FileInfo(temporaryFolder.getRoot().toPath()).getGid();
+
+        assertThat(gid).isNotZero();
+    }
+
+    @Test
     public void shouldReturnDevice() throws Exception {
         File file = temporaryFolder.newFile();
 

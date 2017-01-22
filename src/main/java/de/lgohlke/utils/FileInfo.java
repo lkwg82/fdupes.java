@@ -10,7 +10,7 @@ import java.nio.file.Path;
 public class FileInfo {
     private final Path path;
 
-    int getInode() throws IOException {
+    public int getInode() throws IOException {
         return readAttributeAsInt(path, "unix:ino");
     }
 
@@ -18,8 +18,16 @@ public class FileInfo {
         return readAttributeAsInt(path, "unix:dev");
     }
 
-    int getHardlinks() throws IOException {
+    public int getHardlinks() throws IOException {
         return readAttributeAsInt(path, "unix:nlink");
+    }
+
+    public int getUid() throws IOException {
+        return readAttributeAsInt(path, "unix:uid");
+    }
+
+    public int getGid() throws IOException {
+        return readAttributeAsInt(path, "unix:gid");
     }
 
     private static int readAttributeAsInt(Path path, String attribute) throws IOException {
