@@ -2,6 +2,7 @@ package de.lgohlke.utils;
 
 import com.google.common.collect.Lists;
 import de.lgohlke.utils.filter.MapFilter;
+import de.lgohlke.utils.filter.NotSameFilesystemFilter;
 import de.lgohlke.utils.filter.SingleSizeFilter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,7 +17,7 @@ public class FdupesApplication {
         log.info("scan {}", path);
         Map<Long, List<String>> sizeToFileMap = DirWalker.walk(path);
 
-        List<MapFilter> filters = Lists.newArrayList(new SingleSizeFilter());
+        List<MapFilter> filters = Lists.newArrayList(new SingleSizeFilter(), new NotSameFilesystemFilter(path));
 
         for (MapFilter filter : filters) {
             int oldSize = sizeToFileMap.size();
@@ -25,7 +26,5 @@ public class FdupesApplication {
             int newSize = sizeToFileMap.size();
             log.info(" filtered from {} -> {}", oldSize, newSize);
         }
-
     }
-
 }
