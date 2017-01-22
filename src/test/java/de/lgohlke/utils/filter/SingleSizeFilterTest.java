@@ -1,4 +1,4 @@
-package de.lgohlke.utils;
+package de.lgohlke.utils.filter;
 
 import com.google.common.collect.Lists;
 import org.junit.Test;

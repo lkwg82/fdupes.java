@@ -1,8 +1,8 @@
-package de.lgohlke.utils;
+package de.lgohlke.utils.filter;
 
 import java.util.List;
 import java.util.Map;
 
-interface MapFilter {
+public interface MapFilter {
     Map<Long, List<String>> filter(Map<Long, List<String>> sizeToFileMap);
 }

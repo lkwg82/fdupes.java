@@ -1,10 +1,10 @@
-package de.lgohlke.utils;
+package de.lgohlke.utils.filter;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-class SingleSizeFilter implements MapFilter {
+public class SingleSizeFilter implements MapFilter {
     @Override
     public Map<Long, List<String>> filter(Map<Long, List<String>> sizeToFileMap) {
         return sizeToFileMap.entrySet()
