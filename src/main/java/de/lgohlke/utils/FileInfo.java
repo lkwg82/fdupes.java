@@ -7,14 +7,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @RequiredArgsConstructor
-class FileInfo {
+public class FileInfo {
     private final Path path;
 
     int getInode() throws IOException {
         return readAttributeAsInt(path, "unix:ino");
     }
 
-    int getDevice() throws IOException {
+    public int getDevice() throws IOException {
         return readAttributeAsInt(path, "unix:dev");
     }
 
