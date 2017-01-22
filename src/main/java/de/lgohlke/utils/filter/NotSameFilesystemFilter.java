@@ -5,7 +5,7 @@ import de.lgohlke.utils.FileInfo;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
@@ -18,12 +18,12 @@ public class NotSameFilesystemFilter implements MapFilter {
 
     private final int deviceNo;
 
-    public NotSameFilesystemFilter(String rootPath) {
+    public NotSameFilesystemFilter(Path rootPath) {
         deviceNo = getDeviceNo(rootPath);
     }
 
     @Override
-    public Map<Long, List<String>> filter(Map<Long, List<String>> sizeToFileMap) {
+    public Map<Long, List<Path>> filter(Map<Long, List<Path>> sizeToFileMap) {
         return sizeToFileMap.entrySet()
                             .stream()
                             .map(this::filterOutNotSameDevice)
@@ -31,8 +31,8 @@ public class NotSameFilesystemFilter implements MapFilter {
                             .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private Map.Entry<Long, List<String>> filterOutNotSameDevice(Map.Entry<Long, List<String>> entry) {
-        List<String> filteredList = entry.getValue()
+    private Map.Entry<Long, List<Path>> filterOutNotSameDevice(Map.Entry<Long, List<Path>> entry) {
+        List<Path> filteredList = entry.getValue()
                                          .stream()
                                          .filter(path -> getDeviceNo(path) == deviceNo)
                                          .collect(toList());
@@ -41,8 +41,8 @@ public class NotSameFilesystemFilter implements MapFilter {
     }
 
     @VisibleForTesting
-    int getDeviceNo(String path) {
-        FileInfo fileInfo = new FileInfo(Paths.get(path));
+    int getDeviceNo(Path path) {
+        FileInfo fileInfo = new FileInfo(path);
         try {
             return fileInfo.getDevice();
         } catch (IOException e) {

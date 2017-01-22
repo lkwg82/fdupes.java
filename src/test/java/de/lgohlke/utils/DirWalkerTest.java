@@ -6,6 +6,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -21,10 +22,8 @@ public class DirWalkerTest {
         createFile("a");
         createFile("b/c");
 
-        String rootPath = temporaryFolder.getRoot().toPath().toString();
-
         // action
-        Map<Long, List<String>> sizeToFileMap = DirWalker.walk(rootPath);
+        Map<Long, List<Path>> sizeToFileMap = DirWalker.walk(temporaryFolder.getRoot().toPath());
 
         assertThat(sizeToFileMap).containsKeys(0L);
         assertThat(sizeToFileMap.get(0L)).hasSize(2);

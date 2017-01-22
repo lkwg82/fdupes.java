@@ -15,7 +15,7 @@ import java.util.Map;
 
 class MyFileVisitor extends SimpleFileVisitor<Path> {
     @Getter
-    private final Map<Long, List<String>> sizeToPathMap = new HashMap<>();
+    private final Map<Long, List<Path>> sizeToPathMap = new HashMap<>();
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
@@ -31,10 +31,10 @@ class MyFileVisitor extends SimpleFileVisitor<Path> {
         long size = attrs.size();
 
         if (sizeToPathMap.containsKey(size)) {
-            sizeToPathMap.get(size).add(file.toString());
+            sizeToPathMap.get(size).add(file);
         } else {
-            List<String> list = new ArrayList<>();
-            list.add(file.toString());
+            List<Path> list = new ArrayList<>();
+            list.add(file);
             sizeToPathMap.put(size, list);
         }
         return FileVisitResult.CONTINUE;
