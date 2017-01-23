@@ -29,5 +29,4 @@ public class PairGeneratorTest {
 
         assertThat(pairs).hasSize(3);
     }
-
 }
