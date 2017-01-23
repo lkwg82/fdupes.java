@@ -1,5 +1,8 @@
 package de.lgohlke.utils;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
@@ -8,6 +11,8 @@ import java.nio.file.Path;
 
 @RequiredArgsConstructor
 public class FileInfo {
+    private final static Cache<PathAttribute, String> CACHE = CacheBuilder.newBuilder().maximumSize(1000).build();
+
     private final Path path;
 
     public int getInode() throws IOException {
@@ -31,6 +36,20 @@ public class FileInfo {
     }
 
     private static int readAttributeAsInt(Path path, String attribute) throws IOException {
-        return Integer.valueOf(Files.getAttribute(path, attribute).toString());
+
+        PathAttribute key = new PathAttribute(path, attribute);
+        String result = CACHE.getIfPresent(key);
+        if (result == null) {
+            result = Files.getAttribute(path, attribute).toString();
+            CACHE.put(key, result);
+        }
+        return Integer.valueOf(result);
+    }
+
+    @RequiredArgsConstructor
+    @EqualsAndHashCode
+    private static class PathAttribute {
+        private final Path path;
+        private final String attribute;
     }
 }
