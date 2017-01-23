@@ -8,6 +8,7 @@ import de.lgohlke.utils.filter.map.TooSmallFilter;
 import de.lgohlke.utils.filter.pair.NotSameOwnerFilter;
 import de.lgohlke.utils.filter.pair.Pair;
 import de.lgohlke.utils.filter.pair.PairFilter;
+import de.lgohlke.utils.filter.pair.SameFileFilter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.Path;
@@ -40,7 +41,7 @@ public class FdupesApplication {
             log.info(" filtered from {} -> {}", oldSize, newSize);
         }
 
-        List<PairFilter> pairFilters = Lists.newArrayList(new NotSameOwnerFilter(), new NotSameOwnerFilter());
+        List<PairFilter> pairFilters = Lists.newArrayList(new NotSameOwnerFilter(), new SameFileFilter());
 
         log.info("start pairfiltering");
         sizeToFileMap.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey)).forEach(entry -> {
