@@ -2,9 +2,7 @@ package de.lgohlke.utils.filter.pair;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.RequiredArgsConstructor;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -15,10 +13,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class NotSameOwnerFilterTest {
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-
     @Test
     public void sameOwner() throws IOException {
         Pair pair = new Pair(Paths.get("a"), Paths.get("b"));
