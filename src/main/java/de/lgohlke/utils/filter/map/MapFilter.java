@@ -1,4 +1,4 @@
-package de.lgohlke.utils.filter;
+package de.lgohlke.utils.filter.map;
 
 import java.nio.file.Path;
 import java.util.List;

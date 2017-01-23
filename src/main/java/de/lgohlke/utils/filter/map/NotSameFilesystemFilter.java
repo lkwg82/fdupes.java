@@ -1,4 +1,4 @@
-package de.lgohlke.utils.filter;
+package de.lgohlke.utils.filter.map;
 
 import com.google.common.annotations.VisibleForTesting;
 import de.lgohlke.utils.FileInfo;
