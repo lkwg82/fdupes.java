@@ -20,6 +20,16 @@ public class Deduplicator implements Function<Pair, Void> {
         Path p1 = pair.getP1();
         Path p2 = pair.getP2();
 
+        if (!p1.toFile().exists()) {
+            log.warn("file missing: {}", p1);
+            return false;
+        }
+
+        if (!p2.toFile().exists()) {
+            log.warn("file missing: {}", p2);
+            return false;
+        }
+
         if (Files.isSameFile(p1, p2)) {
             return false;
         }

@@ -49,6 +49,17 @@ public class DudplicatorTest {
         assertThat(hardlinksBefore + 1).isEqualTo(hardlinks(pair.getP2()));
     }
 
+    @Test
+    public void shouldFailIfFirstIsNotExisting() throws Exception {
+        Pair pair = createPair();
+
+        pair.getP1().toFile().delete();
+
+        boolean eleminated = deduplicator.eleminate(pair);
+
+        assertThat(eleminated).isFalse();
+    }
+
     private Integer hardlinks(Path p1) throws IOException {
         return Integer.valueOf(Files.getAttribute(p1, "unix:nlink") + "");
     }
