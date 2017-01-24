@@ -3,11 +3,13 @@ package de.lgohlke.utils.filter.pair;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.hash.Hashing;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+@Slf4j
 public class SameHashFilter implements PairFilter {
     private final static Cache<File, String> CACHE = CacheBuilder.newBuilder().maximumSize(1000).build();
 
@@ -24,10 +26,11 @@ public class SameHashFilter implements PairFilter {
         if (hash == null) {
             try {
                 hash = com.google.common.io.Files.hash(file, Hashing.md5()).toString();
-                CACHE.put(file, hash);
             } catch (IOException e) {
-                throw new IllegalStateException(e);
+                log.warn("skip file {}", file);
+                hash = "0";
             }
+            CACHE.put(file, hash);
         }
         return hash;
     }
