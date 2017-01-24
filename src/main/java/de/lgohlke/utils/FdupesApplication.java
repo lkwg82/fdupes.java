@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -63,10 +62,14 @@ public class FdupesApplication {
     }
 
     FdupesApplication filterCandidatePairs(Function<Pair, Void> eleminateDuplicateOperation) {
-        List<PairFilter> pairFilters = Lists.newArrayList(new SameFileFilter(), new NotSameOwnerFilter(), new SameHashFilter());
+        List<PairFilter> pairFilters = Lists.newArrayList(new SameFileFilter(), new NotSameOwnerFilter(), new Same4KHashFilter(), new SameHashFilter());
 
         log.info("start pairfiltering");
-        sizeToFileMap.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey)).forEach(entry -> {
+        Stream<Map.Entry<Long, List<Path>>> reverseSortedBySize = sizeToFileMap.entrySet()
+                                                                               .stream()
+                                                                               .sorted((o1, o2) -> Long.compare(o2.getKey(), o1
+                                                                                       .getKey()));
+        reverseSortedBySize.forEach(entry -> {
             List<Pair> pairs = new PairGenerator().generate(entry.getValue());
             log.info(" pairfiltering size ({}) #{}", entry.getKey(), pairs.size());
 
@@ -79,7 +82,9 @@ public class FdupesApplication {
                 }
             }
 
-            pairs.stream().map(eleminateDuplicateOperation);
+            if (!pairs.isEmpty()) {
+                pairs.stream().map(eleminateDuplicateOperation);
+            }
 
             int minus = pairs.stream()
                              .flatMap(pair -> Stream.of(pair.getP1(), pair.getP2()))
@@ -115,7 +120,7 @@ public class FdupesApplication {
         TimeUnit.SECONDS.sleep(10);
 
         new FdupesApplication(pathToScan).init().filterGlobal().filterCandidatePairs(pair -> {
-            System.out.println("duplicates: " + pair.getP1() + " & " + pair.getP2());
+            log.info("duplicates: " + pair.getP1() + " & " + pair.getP2());
             return null;
         });
 
