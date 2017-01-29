@@ -6,7 +6,7 @@ import de.lgohlke.utils.FileInfo;
 import java.io.IOException;
 import java.nio.file.Path;
 
-public class NotSameOwnerFilter implements PairFilter {
+public class SameOwnerFilter implements PairFilter {
     @Override
     public boolean select(Pair pair) {
         Path p1 = pair.getP1();

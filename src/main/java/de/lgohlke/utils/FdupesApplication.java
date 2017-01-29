@@ -16,7 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,11 +40,14 @@ public class FdupesApplication {
 
     FdupesApplication filterGlobal() {
         MapFilter tooBigFilter = sizeToFileMap -> sizeToFileMap.entrySet()
-                                                               .stream()
-                                                               .filter(entry -> entry.getKey() < 4 * 1024 * 1024)
-                                                               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .stream()
+                .filter(entry -> entry.getKey() < 4 * 1024 * 1024)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        List<MapFilter> filters = Lists.newArrayList(new SingleSizeFilter(), new TooSmallFilter(), new NotSameFilesystemFilter(path), tooBigFilter);
+        List<MapFilter> filters = Lists.newArrayList(new SingleSizeFilter(),
+                                                     new TooSmallFilter(),
+                                                     new NotSameFilesystemFilter(path),
+                                                     tooBigFilter);
 
         for (MapFilter filter : filters) {
             long oldSize = sumFilesize(sizeToFileMap);
@@ -62,13 +64,17 @@ public class FdupesApplication {
     }
 
     FdupesApplication filterCandidatePairs(Function<Pair, Void> eleminateDuplicateOperation) {
-        List<PairFilter> pairFilters = Lists.newArrayList(new SameFileFilter(), new NotSameOwnerFilter(), new Same4KHashFilter(), new SameHashFilter());
+        List<PairFilter> pairFilters = Lists.newArrayList(new SameFileFilter(),
+                                                          new SameOwnerFilter(),
+                                                          new SamePermissionsFilter(),
+                                                          new Same4KHashFilter(),
+                                                          new SameHashFilter());
 
         log.info("start pairfiltering");
         Stream<Map.Entry<Long, List<Path>>> reverseSortedBySize = sizeToFileMap.entrySet()
-                                                                               .stream()
-                                                                               .sorted((o1, o2) -> Long.compare(o2.getKey(), o1
-                                                                                       .getKey()));
+                .stream()
+                .sorted((o1, o2) -> Long.compare(o2.getKey(), o1
+                        .getKey()));
         reverseSortedBySize.forEach(entry -> {
             List<Pair> pairs = new PairGenerator().generate(entry.getValue());
             log.info(" pairfiltering size ({}) #{}", entry.getKey(), pairs.size());
@@ -78,27 +84,25 @@ public class FdupesApplication {
                 if (oldSize > 0) {
                     pairs = pairs.stream().filter(pairFilter::select).collect(Collectors.toList());
                     log.info("  filtered {} -> {} with {}", oldSize, pairs.size(), pairFilter.getClass()
-                                                                                             .getSimpleName());
+                            .getSimpleName());
                 }
             }
 
             if (!pairs.isEmpty()) {
-                pairs.stream().map(eleminateDuplicateOperation);
+                pairs.forEach(pair -> {
+                    eleminateDuplicateOperation.apply(pair);
+                });
             }
 
             int minus = pairs.stream()
-                             .flatMap(pair -> Stream.of(pair.getP1(), pair.getP2()))
-                             .collect(Collectors.toSet())
-                             .size();
+                    .flatMap(pair -> Stream.of(pair.getP1(), pair.getP2()))
+                    .collect(Collectors.toSet())
+                    .size();
 
             progress.reduce(entry.getValue().size() - minus);
             log.info(progress.status());
         });
         return this;
-    }
-
-    private static String size(int oldSize) {
-        return size((long) oldSize);
     }
 
     private static String size(long oldSize) {
@@ -107,22 +111,20 @@ public class FdupesApplication {
 
     private static long sumFilesize(Map<Long, List<Path>> sizeToFileMap) {
         return sizeToFileMap.entrySet()
-                            .stream()
-                            .map(entry -> entry.getKey() * entry.getValue().size())
-                            .mapToLong(Long::longValue)
-                            .sum();
+                .stream()
+                .map(entry -> entry.getKey() * entry.getValue().size())
+                .mapToLong(Long::longValue)
+                .sum();
     }
 
     public static void main(String[] args) throws Exception {
         String pathToScan = "/backup/backintime/lars-MS-7930/lars/4";
 
         // only for profiling
-        TimeUnit.SECONDS.sleep(10);
+//        TimeUnit.SECONDS.sleep(10);
 
-        new FdupesApplication(pathToScan).init().filterGlobal().filterCandidatePairs(pair -> {
-            log.info("duplicates: " + pair.getP1() + " & " + pair.getP2());
-            return null;
-        });
+        Deduplicator eleminateDuplicateOperation = new Deduplicator();
+        new FdupesApplication(pathToScan).init().filterGlobal().filterCandidatePairs(eleminateDuplicateOperation);
 
 
         log.info("finish");

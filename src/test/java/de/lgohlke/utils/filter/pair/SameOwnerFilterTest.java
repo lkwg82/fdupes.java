@@ -12,7 +12,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class NotSameOwnerFilterTest {
+public class SameOwnerFilterTest {
     @Test
     public void sameOwner() throws IOException {
         Pair pair = new Pair(Paths.get("a"), Paths.get("b"));
@@ -43,7 +43,7 @@ public class NotSameOwnerFilterTest {
     }
 
     @RequiredArgsConstructor
-    private static class MyFilter extends NotSameOwnerFilter {
+    private static class MyFilter extends SameOwnerFilter {
         private final Map<String, Integer> pathUidMap;
         private final Map<String, Integer> pathGidMap;
 
