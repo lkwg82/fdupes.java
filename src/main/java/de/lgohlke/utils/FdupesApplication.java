@@ -38,13 +38,14 @@ public class FdupesApplication {
     }
 
     FdupesApplication filterGlobal() {
-        MapFilter tooBigFilter = sizeToFileMap -> sizeToFileMap.entrySet()
-                                                               .stream()
-                                                               .filter(entry -> entry.getKey() < 4 * 1024 * 1024)
-                                                               .collect(Collectors.toMap(Map.Entry::getKey,
-                                                                                         Map.Entry::getValue));
+        MapFilter zeroSizeFiles = sizeToFileMap -> sizeToFileMap.entrySet()
+                                                                .stream()
+                                                                .filter(entry -> entry.getKey() == 0L)
+                                                                .collect(Collectors.toMap(Map.Entry::getKey,
+                                                                                          Map.Entry::getValue));
 
-        List<MapFilter> filters = Lists.newArrayList(new SingleSizeFilter(),
+        List<MapFilter> filters = Lists.newArrayList(zeroSizeFiles,
+                                                     new SingleSizeFilter(),
 //                                                     new TooSmallFilter(),
                                                      new NotSameFilesystemFilter(path));
 
@@ -76,12 +77,14 @@ public class FdupesApplication {
                                                                                                                 o1.getKey()));
         reverseSortedBySize.forEach(entry -> {
             List<Pair> pairs = new PairGenerator().generate(entry.getValue());
-            log.info(" pairfiltering size ({}) #{}", entry.getKey(), pairs.size());
+            log.info(" pairfiltering size ({}) #{}", size(entry.getKey()), pairs.size());
 
             for (PairFilter pairFilter : pairFilters) {
                 int oldSize = pairs.size();
                 if (oldSize > 0) {
-                    pairs = pairs.stream().filter(pairFilter::select).collect(Collectors.toList());
+                    pairs = pairs.stream()
+                                 .filter(pairFilter::select)
+                                 .collect(Collectors.toList());
                     log.info("  filtered {} -> {} with {}", oldSize, pairs.size(), pairFilter.getClass()
                                                                                              .getSimpleName());
                 }
