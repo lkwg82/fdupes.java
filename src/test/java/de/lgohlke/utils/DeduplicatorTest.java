@@ -18,7 +18,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DudplicatorTest {
+public class DeduplicatorTest {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
     private Deduplicator deduplicator = new Deduplicator();
