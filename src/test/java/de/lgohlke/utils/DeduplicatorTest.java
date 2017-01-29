@@ -21,7 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DeduplicatorTest {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
-    private Deduplicator deduplicator = new Deduplicator();
+
+    private Saved saved = new Saved();
+    private Deduplicator deduplicator = new Deduplicator(saved);
 
     @Test
     public void shouldHaveSamePermissions() throws Exception {
@@ -35,6 +37,17 @@ public class DeduplicatorTest {
         assertThat(eleminated).isTrue();
         Set<PosixFilePermission> permissionsB = fileAttributes(pair.getP2()).permissions();
         assertThat(permissionsA).isEqualTo(permissionsB);
+    }
+
+    @Test
+    public void shouldBeEleminatedAndCounted() throws Exception {
+        Pair pair = createPair();
+        Files.write(pair.getP1(), "asdasdsadasdsa".getBytes());
+        Files.write(pair.getP2(), "asdasdsadasdsa".getBytes());
+
+        assertThat(deduplicator.eleminate(pair)).isTrue();
+        assertThat(saved.getSavedBytes().longValue()).isEqualTo(14L);
+        assertThat(saved.getCreatedLinks().intValue()).isEqualTo(1);
     }
 
     @Test
