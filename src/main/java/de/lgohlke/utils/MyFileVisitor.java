@@ -39,6 +39,4 @@ class MyFileVisitor extends SimpleFileVisitor<Path> {
         }
         return FileVisitResult.CONTINUE;
     }
-
-
 }
