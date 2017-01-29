@@ -16,7 +16,7 @@ public class Deduplicator implements Function<Pair, Void> {
     /**
      * @return eleminated
      */
-    public boolean eleminate(Pair pair) throws IOException {
+    boolean eleminate(Pair pair) throws IOException {
         Path p1 = pair.getP1();
         Path p2 = pair.getP2();
 
@@ -39,7 +39,9 @@ public class Deduplicator implements Function<Pair, Void> {
         try {
             Files.move(temporaryName, p2, ATOMIC_MOVE);
         } catch (IOException e) {
-            link.toFile().delete();
+            if (!link.toFile().delete()) {
+                log.error("failes to delete temporary link:{}", link);
+            }
             throw e;
         }
         return true;
