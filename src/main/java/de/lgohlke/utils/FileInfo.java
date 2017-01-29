@@ -15,16 +15,8 @@ public class FileInfo {
 
     private final Path path;
 
-    public int getInode() throws IOException {
-        return readAttributeAsInt(path, "unix:ino");
-    }
-
     public int getDevice() throws IOException {
         return readAttributeAsInt(path, "unix:dev");
-    }
-
-    public int getHardlinks() throws IOException {
-        return readAttributeAsInt(path, "unix:nlink");
     }
 
     public int getUid() throws IOException {
