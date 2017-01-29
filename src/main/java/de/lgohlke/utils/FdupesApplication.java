@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import de.lgohlke.utils.filter.map.MapFilter;
 import de.lgohlke.utils.filter.map.NotSameFilesystemFilter;
 import de.lgohlke.utils.filter.map.SingleSizeFilter;
-import de.lgohlke.utils.filter.map.TooSmallFilter;
 import de.lgohlke.utils.filter.pair.*;
 import de.lgohlke.utils.status.Progress;
 import de.lgohlke.utils.status.SizeFormatter;
@@ -40,14 +39,14 @@ public class FdupesApplication {
 
     FdupesApplication filterGlobal() {
         MapFilter tooBigFilter = sizeToFileMap -> sizeToFileMap.entrySet()
-                .stream()
-                .filter(entry -> entry.getKey() < 4 * 1024 * 1024)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                                                               .stream()
+                                                               .filter(entry -> entry.getKey() < 4 * 1024 * 1024)
+                                                               .collect(Collectors.toMap(Map.Entry::getKey,
+                                                                                         Map.Entry::getValue));
 
         List<MapFilter> filters = Lists.newArrayList(new SingleSizeFilter(),
-                                                     new TooSmallFilter(),
-                                                     new NotSameFilesystemFilter(path),
-                                                     tooBigFilter);
+//                                                     new TooSmallFilter(),
+                                                     new NotSameFilesystemFilter(path));
 
         for (MapFilter filter : filters) {
             long oldSize = sumFilesize(sizeToFileMap);
@@ -72,9 +71,9 @@ public class FdupesApplication {
 
         log.info("start pairfiltering");
         Stream<Map.Entry<Long, List<Path>>> reverseSortedBySize = sizeToFileMap.entrySet()
-                .stream()
-                .sorted((o1, o2) -> Long.compare(o2.getKey(), o1
-                        .getKey()));
+                                                                               .stream()
+                                                                               .sorted((o1, o2) -> Long.compare(o2.getKey(),
+                                                                                                                o1.getKey()));
         reverseSortedBySize.forEach(entry -> {
             List<Pair> pairs = new PairGenerator().generate(entry.getValue());
             log.info(" pairfiltering size ({}) #{}", entry.getKey(), pairs.size());
@@ -84,7 +83,7 @@ public class FdupesApplication {
                 if (oldSize > 0) {
                     pairs = pairs.stream().filter(pairFilter::select).collect(Collectors.toList());
                     log.info("  filtered {} -> {} with {}", oldSize, pairs.size(), pairFilter.getClass()
-                            .getSimpleName());
+                                                                                             .getSimpleName());
                 }
             }
 
@@ -95,9 +94,9 @@ public class FdupesApplication {
             }
 
             int minus = pairs.stream()
-                    .flatMap(pair -> Stream.of(pair.getP1(), pair.getP2()))
-                    .collect(Collectors.toSet())
-                    .size();
+                             .flatMap(pair -> Stream.of(pair.getP1(), pair.getP2()))
+                             .collect(Collectors.toSet())
+                             .size();
 
             progress.reduce(entry.getValue().size() - minus);
             log.info(progress.status());
@@ -111,10 +110,10 @@ public class FdupesApplication {
 
     private static long sumFilesize(Map<Long, List<Path>> sizeToFileMap) {
         return sizeToFileMap.entrySet()
-                .stream()
-                .map(entry -> entry.getKey() * entry.getValue().size())
-                .mapToLong(Long::longValue)
-                .sum();
+                            .stream()
+                            .map(entry -> entry.getKey() * entry.getValue().size())
+                            .mapToLong(Long::longValue)
+                            .sum();
     }
 
     public static void main(String[] args) throws Exception {
@@ -123,8 +122,9 @@ public class FdupesApplication {
         // only for profiling
 //        TimeUnit.SECONDS.sleep(10);
 
-        Deduplicator eleminateDuplicateOperation = new Deduplicator();
-        new FdupesApplication(pathToScan).init().filterGlobal().filterCandidatePairs(eleminateDuplicateOperation);
+        new FdupesApplication(pathToScan).init()
+                                         .filterGlobal()
+                                         .filterCandidatePairs(new Deduplicator());
 
 
         log.info("finish");
