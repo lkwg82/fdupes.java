@@ -23,7 +23,9 @@ public class DirWalkerTest {
         createFile("b/c");
 
         // action
-        Map<Long, List<Path>> sizeToFileMap = DirWalker.walk(temporaryFolder.getRoot().toPath());
+        Map<Long, List<Path>> sizeToFileMap = DirWalker.walk(temporaryFolder.getRoot().toPath(),
+                                                             0,
+                                                             Long.MAX_VALUE);
 
         assertThat(sizeToFileMap).containsKeys(0L);
         assertThat(sizeToFileMap.get(0L)).hasSize(2);

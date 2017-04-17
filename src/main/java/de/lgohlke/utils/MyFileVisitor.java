@@ -1,6 +1,7 @@
 package de.lgohlke.utils;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -13,7 +14,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@RequiredArgsConstructor
 class MyFileVisitor extends SimpleFileVisitor<Path> {
+    private final long minimumSize;
+    private final long maximumSize;
+
     @Getter
     private final Map<Long, List<Path>> sizeToPathMap = new HashMap<>();
 
@@ -30,12 +35,14 @@ class MyFileVisitor extends SimpleFileVisitor<Path> {
 
         long size = attrs.size();
 
-        if (sizeToPathMap.containsKey(size)) {
-            sizeToPathMap.get(size).add(file);
-        } else {
-            List<Path> list = new ArrayList<>();
-            list.add(file);
-            sizeToPathMap.put(size, list);
+        if (minimumSize <= size && size <= maximumSize) {
+            if (sizeToPathMap.containsKey(size)) {
+                sizeToPathMap.get(size).add(file);
+            } else {
+                List<Path> list = new ArrayList<>();
+                list.add(file);
+                sizeToPathMap.put(size, list);
+            }
         }
         return FileVisitResult.CONTINUE;
     }

@@ -9,6 +9,7 @@ import de.lgohlke.utils.status.Progress;
 import de.lgohlke.utils.status.SizeFormatter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -21,6 +22,7 @@ import java.util.stream.Stream;
 
 @Slf4j
 @RequiredArgsConstructor
+@SpringBootApplication
 public class FdupesApplication {
     private final String _path;
 
@@ -28,19 +30,19 @@ public class FdupesApplication {
     private Progress progress;
     private Map<Long, List<Path>> sizeToFileMap;
 
-    FdupesApplication init() throws IOException {
+    private FdupesApplication init(long minimumSize, long maximumSize) throws IOException {
         path = Paths.get(_path);
         log.info("scanning {}", path);
-        sizeToFileMap = DirWalker.walk(path);
+        sizeToFileMap = DirWalker.walk(path, minimumSize, maximumSize);
         log.info("scanned");
         progress = new Progress(sumFilesize(sizeToFileMap));
         return this;
     }
 
-    FdupesApplication filterGlobal() {
+    private FdupesApplication filterGlobal() {
         MapFilter zeroSizeFiles = sizeToFileMap -> sizeToFileMap.entrySet()
                                                                 .stream()
-                                                                .filter(entry -> entry.getKey() == 0L)
+                                                                .filter(entry -> entry.getKey() > 0L)
                                                                 .collect(Collectors.toMap(Map.Entry::getKey,
                                                                                           Map.Entry::getValue));
 
@@ -63,7 +65,7 @@ public class FdupesApplication {
         return this;
     }
 
-    FdupesApplication filterCandidatePairs(Function<Pair, Void> eleminateDuplicateOperation) {
+    private FdupesApplication filterCandidatePairs(Function<Pair, Void> eleminateDuplicateOperation) {
         List<PairFilter> pairFilters = Lists.newArrayList(new SameFileFilter(),
                                                           new SameOwnerFilter(),
                                                           new SamePermissionsFilter(),
@@ -91,9 +93,7 @@ public class FdupesApplication {
             }
 
             if (!pairs.isEmpty()) {
-                pairs.forEach(pair -> {
-                    eleminateDuplicateOperation.apply(pair);
-                });
+                pairs.forEach(eleminateDuplicateOperation::apply);
             }
 
             int minus = pairs.stream()
@@ -120,17 +120,40 @@ public class FdupesApplication {
     }
 
     public static void main(String[] args) throws Exception {
-        String pathToScan = "/backup/backintime/lars-MS-7930/lars/4";
+        if (args.length == 0) {
+            System.err.println("need a path to scan");
+            System.exit(1);
+        }
+        String pathToScan = args[0];//"/backupExtern/wirt.lgohlke.de";
+
+        long minimumSize = 0L;
+        long maximumSize = Long.MAX_VALUE;
+        if (args.length >= 1) {
+            try {
+                minimumSize = Long.parseLong(args[1]);
+            } catch (NumberFormatException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+        if (args.length >= 2) {
+            try {
+                maximumSize = Long.parseLong(args[2]);
+            } catch (NumberFormatException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
 
         // only for profiling
 //        TimeUnit.SECONDS.sleep(10);
 
-        new FdupesApplication(pathToScan).init()
+        Saved saved = new Saved();
+        Deduplicator eleminateDuplicateOperation = new Deduplicator(saved);
+        new FdupesApplication(pathToScan).init(minimumSize, maximumSize)
                                          .filterGlobal()
-                                         .filterCandidatePairs(new Deduplicator());
+                                         .filterCandidatePairs(eleminateDuplicateOperation);
 
 
-        log.info("finish");
+        log.info("finish: " + saved);
     }
 
 }

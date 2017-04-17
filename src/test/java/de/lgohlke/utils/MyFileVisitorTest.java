@@ -21,7 +21,7 @@ public class MyFileVisitorTest {
         File file = temporaryFolder.newFile();
         Path path = file.toPath();
 
-        MyFileVisitor visitor = new MyFileVisitor();
+        MyFileVisitor visitor = new MyFileVisitor(0, Long.MAX_VALUE);
 
         BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class);
         visitor.visitFile(path, attributes);
@@ -35,7 +35,7 @@ public class MyFileVisitorTest {
         Path link = Paths.get(root + "/symboliclink");
         Files.createSymbolicLink(link, Paths.get("/dev/null"));
 
-        MyFileVisitor visitor = new MyFileVisitor();
+        MyFileVisitor visitor = new MyFileVisitor(0, Long.MAX_VALUE);
 
         BasicFileAttributes attributes = Files.readAttributes(link, BasicFileAttributes.class);
         visitor.visitFile(link, attributes);
@@ -47,7 +47,7 @@ public class MyFileVisitorTest {
     public void shouldNotAddDirectories() throws Exception {
         Path root = temporaryFolder.getRoot().toPath();
 
-        MyFileVisitor visitor = new MyFileVisitor();
+        MyFileVisitor visitor = new MyFileVisitor(0, Long.MAX_VALUE);
 
         BasicFileAttributes attributes = Files.readAttributes(root, BasicFileAttributes.class);
         visitor.visitFile(root, attributes);
