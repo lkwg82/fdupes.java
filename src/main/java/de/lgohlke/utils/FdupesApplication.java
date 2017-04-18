@@ -124,20 +124,21 @@ public class FdupesApplication {
             System.err.println("need a path to scan");
             System.exit(1);
         }
-        String pathToScan = args[0];//"/backupExtern/wirt.lgohlke.de";
+        String pathToScan = args[0];
 
+        int MEGABYTE = 1024 * 1024;
         long minimumSize = 0L;
         long maximumSize = Long.MAX_VALUE;
-        if (args.length >= 1) {
+        if (args.length > 1) {
             try {
-                minimumSize = Long.parseLong(args[1]);
+                minimumSize = Long.parseLong(args[1]) * MEGABYTE;
             } catch (NumberFormatException e) {
                 log.error(e.getMessage(), e);
             }
         }
-        if (args.length >= 2) {
+        if (args.length > 2) {
             try {
-                maximumSize = Long.parseLong(args[2]);
+                maximumSize = Long.parseLong(args[2]) * MEGABYTE;
             } catch (NumberFormatException e) {
                 log.error(e.getMessage(), e);
             }
@@ -152,8 +153,6 @@ public class FdupesApplication {
                                          .filterGlobal()
                                          .filterCandidatePairs(eleminateDuplicateOperation);
 
-
         log.info("finish: " + saved);
     }
-
 }
