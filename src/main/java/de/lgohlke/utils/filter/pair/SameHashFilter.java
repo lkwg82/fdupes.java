@@ -11,7 +11,7 @@ import java.nio.file.Path;
 
 @Slf4j
 public class SameHashFilter implements PairFilter {
-    private final static Cache<File, String> CACHE = CacheBuilder.newBuilder().maximumSize(1000).build();
+    private final static Cache<File, String> CACHE = CacheBuilder.newBuilder().maximumSize(10000).build();
 
     @Override
     public boolean select(Pair pair) {

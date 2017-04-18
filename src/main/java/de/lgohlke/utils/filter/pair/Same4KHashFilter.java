@@ -13,7 +13,7 @@ import java.util.Objects;
 
 @Slf4j
 public class Same4KHashFilter implements PairFilter {
-    private final static Cache<File, String> CACHE = CacheBuilder.newBuilder().maximumSize(1000).build();
+    private final static Cache<File, String> CACHE = CacheBuilder.newBuilder().maximumSize(10000).build();
     private final static int SIZE = 4 * 1024;
 
     @Override
