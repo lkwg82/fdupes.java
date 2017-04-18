@@ -1,16 +1,37 @@
 package de.lgohlke.utils;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+@Slf4j
 class DirWalker {
 
     static Map<Long, List<Path>> walk(Path path, long minimumSize, long maximumSize) throws IOException {
-        MyFileVisitor visitor = new MyFileVisitor(minimumSize, maximumSize);
+        Collection<MyFileVisitor.SizePath> sizePaths = new ArrayList<>();
+
+        MyFileVisitor visitor = new MyFileVisitor(minimumSize, maximumSize, sizePaths);
         Files.walkFileTree(path, visitor);
-        return visitor.getSizeToPathMap();
+
+        Map<Long, List<Path>> sizeToPathMap = new TreeMap<>(Long::compareTo);
+
+        sizePaths.forEach(sizePath -> {
+            long size = sizePath.getSize();
+            Path file = sizePath.getPath();
+
+            if (sizeToPathMap.containsKey(size)) {
+                sizeToPathMap.get(size).add(file);
+            } else {
+                List<Path> list = new ArrayList<>();
+                list.add(file);
+                sizeToPathMap.put(size, list);
+            }
+        });
+        sizePaths.clear();
+
+        return sizeToPathMap;
     }
 }

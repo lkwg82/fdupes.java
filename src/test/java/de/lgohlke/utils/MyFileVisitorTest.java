@@ -10,6 +10,8 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,12 +24,13 @@ public class MyFileVisitorTest {
         File file = temporaryFolder.newFile();
         Path path = file.toPath();
 
-        MyFileVisitor visitor = new MyFileVisitor(0, Long.MAX_VALUE);
+        List<MyFileVisitor.SizePath> sizePaths = new ArrayList<>();
+        MyFileVisitor visitor = new MyFileVisitor(0, Long.MAX_VALUE, sizePaths);
 
         BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class);
         visitor.visitFile(path, attributes);
 
-        assertThat(visitor.getSizeToPathMap()).containsKeys(0L);
+        assertThat(sizePaths.get(0).getSize()).isEqualTo(0L);
     }
 
     @Test
@@ -36,25 +39,27 @@ public class MyFileVisitorTest {
         Path link = Paths.get(root + "/symboliclink");
         Files.createSymbolicLink(link, Paths.get("/dev/null"));
 
-        MyFileVisitor visitor = new MyFileVisitor(0, Long.MAX_VALUE);
+        List<MyFileVisitor.SizePath> sizePaths = new ArrayList<>();
+        MyFileVisitor visitor = new MyFileVisitor(0, Long.MAX_VALUE, sizePaths);
 
         BasicFileAttributes attributes = Files.readAttributes(link,
                                                               BasicFileAttributes.class,
                                                               LinkOption.NOFOLLOW_LINKS);
         visitor.visitFile(link, attributes);
 
-        assertThat(visitor.getSizeToPathMap()).isEmpty();
+        assertThat(sizePaths).isEmpty();
     }
 
     @Test
     public void shouldNotAddDirectories() throws Exception {
         Path root = temporaryFolder.getRoot().toPath();
 
-        MyFileVisitor visitor = new MyFileVisitor(0, Long.MAX_VALUE);
+        List<MyFileVisitor.SizePath> sizePaths = new ArrayList<>();
+        MyFileVisitor visitor = new MyFileVisitor(0, Long.MAX_VALUE, sizePaths);
 
         BasicFileAttributes attributes = Files.readAttributes(root, BasicFileAttributes.class);
         visitor.visitFile(root, attributes);
 
-        assertThat(visitor.getSizeToPathMap()).isEmpty();
+        assertThat(sizePaths).isEmpty();
     }
 }
