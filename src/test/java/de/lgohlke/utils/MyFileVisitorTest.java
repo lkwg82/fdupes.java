@@ -6,6 +6,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -37,7 +38,9 @@ public class MyFileVisitorTest {
 
         MyFileVisitor visitor = new MyFileVisitor(0, Long.MAX_VALUE);
 
-        BasicFileAttributes attributes = Files.readAttributes(link, BasicFileAttributes.class);
+        BasicFileAttributes attributes = Files.readAttributes(link,
+                                                              BasicFileAttributes.class,
+                                                              LinkOption.NOFOLLOW_LINKS);
         visitor.visitFile(link, attributes);
 
         assertThat(visitor.getSizeToPathMap()).isEmpty();
