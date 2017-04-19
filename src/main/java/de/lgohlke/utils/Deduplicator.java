@@ -17,9 +17,6 @@ import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 public class Deduplicator implements Function<Pair, Void> {
     private final Saved saved;
 
-    /**
-     * @return eleminated
-     */
     boolean eleminate(Pair pair) throws IOException {
         Path p1 = pair.getP1();
         Path p2 = pair.getP2();
