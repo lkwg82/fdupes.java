@@ -1,9 +1,9 @@
 package de.lgohlke.utils.filter.map;
 
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface MapFilter {
-    Map<Long, List<Path>> filter(Map<Long, List<Path>> sizeToFileMap);
+    Map<Long, Set<Path>> filter(Map<Long, Set<Path>> sizeToFileMap);
 }

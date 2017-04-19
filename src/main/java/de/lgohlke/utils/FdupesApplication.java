@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -29,7 +30,7 @@ public class FdupesApplication {
 
     private Path path;
     private Progress progress;
-    private Map<Long, List<Path>> sizeToFileMap;
+    private Map<Long, Set<Path>> sizeToFileMap;
 
     private FdupesApplication init(long minimumSize, long maximumSize) throws IOException {
         path = Paths.get(_path);
@@ -73,12 +74,12 @@ public class FdupesApplication {
                                                           new SameHashFilter());
 
         log.info("start pairfiltering");
-        Stream<Map.Entry<Long, List<Path>>> reverseSortedBySize = sizeToFileMap.entrySet()
-                                                                               .stream()
-                                                                               .sorted((o1, o2) -> Long.compare(o2.getKey(),
+        Stream<Map.Entry<Long, Set<Path>>> reverseSortedBySize = sizeToFileMap.entrySet()
+                                                                              .stream()
+                                                                              .sorted((o1, o2) -> Long.compare(o2.getKey(),
                                                                                                                 o1.getKey()));
         reverseSortedBySize.forEach(entry -> {
-            List<Pair> pairs = new PairGenerator().generate(entry.getValue());
+            Set<Pair> pairs = new PairGenerator().generate(entry.getValue());
             log.info(" pairfiltering size ({}) #{}", size(entry.getKey()), pairs.size());
 
             for (PairFilter pairFilter : pairFilters) {
@@ -86,7 +87,7 @@ public class FdupesApplication {
                 if (oldSize > 0) {
                     pairs = pairs.stream()
                                  .filter(pairFilter::select)
-                                 .collect(Collectors.toList());
+                                 .collect(Collectors.toSet());
                     log.info("  filtered {} -> {} with {}", oldSize, pairs.size(), pairFilter.getClass()
                                                                                              .getSimpleName());
                 }
@@ -111,7 +112,7 @@ public class FdupesApplication {
         return SizeFormatter.readableFileSize(oldSize);
     }
 
-    private static long sumFilesize(Map<Long, List<Path>> sizeToFileMap) {
+    private static long sumFilesize(Map<Long, Set<Path>> sizeToFileMap) {
         return sizeToFileMap.entrySet()
                             .stream()
                             .map(entry -> entry.getKey() * entry.getValue().size())

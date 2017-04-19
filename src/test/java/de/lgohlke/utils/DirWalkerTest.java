@@ -8,8 +8,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,9 +23,9 @@ public class DirWalkerTest {
         createFile("b/c");
 
         // action
-        Map<Long, List<Path>> sizeToFileMap = DirWalker.walk(temporaryFolder.getRoot().toPath(),
-                                                             0,
-                                                             Long.MAX_VALUE);
+        Map<Long, Set<Path>> sizeToFileMap = DirWalker.walk(temporaryFolder.getRoot().toPath(),
+                                                            0,
+                                                            Long.MAX_VALUE);
 
         assertThat(sizeToFileMap).containsKeys(0L);
         assertThat(sizeToFileMap.get(0L)).hasSize(2);
@@ -42,5 +42,4 @@ public class DirWalkerTest {
         File file = temporaryFolder.newFile(name);
         file.createNewFile();
     }
-
 }
