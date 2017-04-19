@@ -5,9 +5,9 @@ import com.google.common.cache.CacheBuilder;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.ExecutionException;
 
 @RequiredArgsConstructor
 public class FileInfo {
@@ -15,27 +15,28 @@ public class FileInfo {
 
     private final Path path;
 
-    public int getDevice() throws IOException {
+    public int getDevice() {
         return readAttributeAsInt(path, "unix:dev");
     }
 
-    public int getUid() throws IOException {
+    public int getUid() {
         return readAttributeAsInt(path, "unix:uid");
     }
 
-    public int getGid() throws IOException {
+    public int getGid() {
         return readAttributeAsInt(path, "unix:gid");
     }
 
-    private static int readAttributeAsInt(Path path, String attribute) throws IOException {
+    private static int readAttributeAsInt(Path path, String attribute) {
 
         PathAttribute key = new PathAttribute(path, attribute);
-        String result = CACHE.getIfPresent(key);
-        if (result == null) {
-            result = Files.getAttribute(path, attribute).toString();
-            CACHE.put(key, result);
+
+        try {
+            String result = CACHE.get(key, () -> Files.getAttribute(path, attribute).toString());
+            return Integer.valueOf(result);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
         }
-        return Integer.valueOf(result);
     }
 
     @RequiredArgsConstructor

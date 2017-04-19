@@ -1,16 +1,11 @@
 package de.lgohlke.utils.filter.pair;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import de.lgohlke.utils.FileInfo;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.concurrent.ExecutionException;
 
 public class SameOwnerFilter implements PairFilter {
-    private final static Cache<Path, FileInfo> CACHE = CacheBuilder.newBuilder().maximumSize(10000).build();
 
     @Override
     public boolean select(Pair pair) {
@@ -22,29 +17,11 @@ public class SameOwnerFilter implements PairFilter {
 
     @VisibleForTesting
     int getUid(Path path) {
-        try {
-            return getFileInfo(path).getUid();
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
+        return new FileInfo(path).getUid();
     }
 
     @VisibleForTesting
     int getGid(Path path) {
-        try {
-            return getFileInfo(path).getGid();
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
+        return new FileInfo(path).getGid();
     }
-
-    private FileInfo getFileInfo(Path path) {
-        try {
-            return CACHE.get(path, () -> new FileInfo(path));
-        } catch (ExecutionException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    ;
 }
