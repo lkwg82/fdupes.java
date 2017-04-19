@@ -2,6 +2,7 @@ package de.lgohlke.utils;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -33,6 +34,7 @@ class MyFileVisitor extends SimpleFileVisitor<Path> {
 
     @RequiredArgsConstructor
     @Getter
+    @ToString
     static class SizePath {
         private final long size;
         private final Path path;

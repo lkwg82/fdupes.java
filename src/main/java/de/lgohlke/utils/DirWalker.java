@@ -1,6 +1,5 @@
 package de.lgohlke.utils;
 
-import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -26,7 +25,9 @@ class DirWalker {
             if (sizeToPathMap.containsKey(size)) {
                 sizeToPathMap.get(size).add(file);
             } else {
-                sizeToPathMap.put(size, Sets.newHashSet(file));
+                Set<Path> set = new HashSet<>();
+                set.add(file);
+                sizeToPathMap.put(size, set);
             }
         });
         sizePaths.clear();

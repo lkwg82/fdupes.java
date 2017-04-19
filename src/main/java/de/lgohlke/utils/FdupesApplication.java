@@ -23,19 +23,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-@RequiredArgsConstructor
 @SpringBootApplication
+@RequiredArgsConstructor
 public class FdupesApplication {
-    private final String _path;
+    private final RunConfig runConfig;
 
-    private Path path;
     private Progress progress;
     private Map<Long, Set<Path>> sizeToFileMap;
 
-    private FdupesApplication init(long minimumSize, long maximumSize) throws IOException {
-        path = Paths.get(_path);
-        log.info("scanning {}", path);
-        sizeToFileMap = DirWalker.walk(path, minimumSize, maximumSize);
+    private FdupesApplication init() throws IOException {
+        log.info("scanning {}", runConfig.getPathToScan());
+        sizeToFileMap = DirWalker.walk(runConfig.getPathToScan(),
+                                       runConfig.getMinimumSize(),
+                                       runConfig.getMaximumSize());
         log.info("scanned");
         progress = new Progress(sumFilesize(sizeToFileMap));
         return this;
@@ -50,7 +50,7 @@ public class FdupesApplication {
 
         List<MapFilter> filters = Lists.newArrayList(zeroSizeFiles,
                                                      new SingleSizeFilter(),
-                                                     new NotSameFilesystemFilter(path));
+                                                     new NotSameFilesystemFilter(runConfig.getPathToScan()));
 
         for (MapFilter filter : filters) {
             long oldSize = sumFilesize(sizeToFileMap);
@@ -61,7 +61,7 @@ public class FdupesApplication {
                 log.info(" filtered from {} -> {}", size(oldSize), size(newSize));
                 progress.reduce(oldSize - newSize);
             }
-            log.info(progress.status());
+//            log.info(progress.status());
         }
         return this;
     }
@@ -77,7 +77,7 @@ public class FdupesApplication {
         Stream<Map.Entry<Long, Set<Path>>> reverseSortedBySize = sizeToFileMap.entrySet()
                                                                               .stream()
                                                                               .sorted((o1, o2) -> Long.compare(o2.getKey(),
-                                                                                                                o1.getKey()));
+                                                                                                               o1.getKey()));
         reverseSortedBySize.forEach(entry -> {
             Set<Pair> pairs = new PairGenerator().generate(entry.getValue());
             log.info(" pairfiltering size ({}) #{}", size(entry.getKey()), pairs.size());
@@ -103,7 +103,7 @@ public class FdupesApplication {
                              .size();
 
             progress.reduce(entry.getValue().size() - minus);
-            log.info(progress.status());
+//            log.info(progress.status());
         });
         return this;
     }
@@ -120,25 +120,24 @@ public class FdupesApplication {
                             .sum();
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
 
-        RunConfig runConfig = buildRunConfig(args);
+        RunConfig runConfig = buildRunConfig("/backup/wirt.lgohlke.de", "1", "3");
 
         Saved saved = new Saved();
-        Deduplicator eleminateDuplicateOperation = new Deduplicator(saved);
-        new FdupesApplication(runConfig.getPathToScan()).init(runConfig.getMinimumSize(), runConfig.getMaximumSize())
-                                                        .filterGlobal()
-                                                        .filterCandidatePairs(eleminateDuplicateOperation);
+        new FdupesApplication(runConfig).init()
+                                        .filterGlobal()
+                                        .filterCandidatePairs(new Deduplicator(saved));
 
         log.info("finish: " + saved);
     }
 
-    private static RunConfig buildRunConfig(String[] args) {
+    private static RunConfig buildRunConfig(String... args) {
         if (args.length == 0) {
             System.err.println("need a path to scan");
             System.exit(1);
         }
-        String pathToScan = args[0];
+        Path pathToScan = Paths.get(args[0]);
 
         int MEGABYTE = 1024 * 1024;
         long minimumSize = 0L;
@@ -164,7 +163,7 @@ public class FdupesApplication {
     @RequiredArgsConstructor
     @Getter
     private static class RunConfig {
-        private final String pathToScan;
+        private final Path pathToScan;
         private final long minimumSize;
         private final long maximumSize;
     }
