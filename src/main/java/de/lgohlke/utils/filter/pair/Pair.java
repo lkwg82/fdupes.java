@@ -31,7 +31,7 @@ public class Pair {
         return (h1 < h2) ? hash(h1, h2) : hash(h2, h1);
     }
 
-    private int hash(int lower, int higher) {
+    private static int hash(int lower, int higher) {
         int result = lower;
         result = 31 * result + higher;
         return result;

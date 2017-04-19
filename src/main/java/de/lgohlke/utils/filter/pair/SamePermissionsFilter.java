@@ -16,17 +16,17 @@ public class SamePermissionsFilter implements PairFilter {
 
     @Override
     public boolean select(Pair pair) {
-        try {
-            Set<PosixFilePermission> permissionsA = retrievePerms(pair.getP1());
-            Set<PosixFilePermission> permissionsB = retrievePerms(pair.getP2());
+        Set<PosixFilePermission> permissionsA = retrievePerms(pair.getP1());
+        Set<PosixFilePermission> permissionsB = retrievePerms(pair.getP2());
 
-            return permissionsA.equals(permissionsB);
+        return permissionsA.equals(permissionsB);
+    }
+
+    private static Set<PosixFilePermission> retrievePerms(Path path) {
+        try {
+            return CACHE.get(path, () -> Files.getPosixFilePermissions(path, LinkOption.NOFOLLOW_LINKS));
         } catch (ExecutionException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    private static Set<PosixFilePermission> retrievePerms(Path path) throws ExecutionException {
-        return CACHE.get(path, () -> Files.getPosixFilePermissions(path, LinkOption.NOFOLLOW_LINKS));
     }
 }

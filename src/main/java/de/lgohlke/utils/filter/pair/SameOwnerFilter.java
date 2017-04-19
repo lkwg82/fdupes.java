@@ -7,10 +7,10 @@ import de.lgohlke.utils.FileInfo;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.concurrent.ExecutionException;
 
 public class SameOwnerFilter implements PairFilter {
-    private final static Cache<Path, Integer> CACHE_UID = CacheBuilder.newBuilder().maximumSize(10000).build();
-    private final static Cache<Path, Integer> CACHE_GID = CacheBuilder.newBuilder().maximumSize(10000).build();
+    private final static Cache<Path, FileInfo> CACHE = CacheBuilder.newBuilder().maximumSize(10000).build();
 
     @Override
     public boolean select(Pair pair) {
@@ -22,16 +22,8 @@ public class SameOwnerFilter implements PairFilter {
 
     @VisibleForTesting
     int getUid(Path path) {
-        Integer uid = CACHE_UID.getIfPresent(path);
-        if (uid != null) {
-            return uid;
-        }
-
-        FileInfo fileInfo = new FileInfo(path);
         try {
-            int uidFresh = fileInfo.getUid();
-            CACHE_UID.put(path, uidFresh);
-            return uidFresh;
+            return getFileInfo(path).getUid();
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -39,18 +31,20 @@ public class SameOwnerFilter implements PairFilter {
 
     @VisibleForTesting
     int getGid(Path path) {
-        Integer gid = CACHE_GID.getIfPresent(path);
-        if (gid != null) {
-            return gid;
-        }
-
-        FileInfo fileInfo = new FileInfo(path);
         try {
-            int gidFresh = fileInfo.getGid();
-            CACHE_GID.put(path, gidFresh);
-            return gidFresh;
+            return getFileInfo(path).getGid();
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
     }
+
+    private FileInfo getFileInfo(Path path) {
+        try {
+            return CACHE.get(path, () -> new FileInfo(path));
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    ;
 }

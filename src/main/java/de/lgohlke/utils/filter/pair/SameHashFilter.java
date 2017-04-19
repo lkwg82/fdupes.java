@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 public class SameHashFilter implements PairFilter {
@@ -22,16 +23,17 @@ public class SameHashFilter implements PairFilter {
 
     private String hash(Path path) {
         File file = path.toFile();
-        String hash = CACHE.getIfPresent(file);
-        if (hash == null) {
-            try {
-                hash = com.google.common.io.Files.hash(file, Hashing.md5()).toString();
-            } catch (IOException e) {
-                log.warn("skip file {}", file);
-                hash = "0";
-            }
-            CACHE.put(file, hash);
+        try {
+            return CACHE.get(file, () -> {
+                try {
+                    return com.google.common.io.Files.hash(file, Hashing.md5()).toString();
+                } catch (IOException e) {
+                    log.warn("skip file {}", file);
+                    return "0";
+                }
+            });
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
         }
-        return hash;
     }
 }
