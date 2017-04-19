@@ -7,6 +7,7 @@ import de.lgohlke.utils.filter.map.SingleSizeFilter;
 import de.lgohlke.utils.filter.pair.*;
 import de.lgohlke.utils.status.Progress;
 import de.lgohlke.utils.status.SizeFormatter;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -48,7 +49,6 @@ public class FdupesApplication {
 
         List<MapFilter> filters = Lists.newArrayList(zeroSizeFiles,
                                                      new SingleSizeFilter(),
-//                                                     new TooSmallFilter(),
                                                      new NotSameFilesystemFilter(path));
 
         for (MapFilter filter : filters) {
@@ -120,6 +120,19 @@ public class FdupesApplication {
     }
 
     public static void main(String[] args) throws Exception {
+
+        RunConfig runConfig = buildRunConfig(args);
+
+        Saved saved = new Saved();
+        Deduplicator eleminateDuplicateOperation = new Deduplicator(saved);
+        new FdupesApplication(runConfig.getPathToScan()).init(runConfig.getMinimumSize(), runConfig.getMaximumSize())
+                                                        .filterGlobal()
+                                                        .filterCandidatePairs(eleminateDuplicateOperation);
+
+        log.info("finish: " + saved);
+    }
+
+    private static RunConfig buildRunConfig(String[] args) {
         if (args.length == 0) {
             System.err.println("need a path to scan");
             System.exit(1);
@@ -144,15 +157,14 @@ public class FdupesApplication {
             }
         }
 
-        // only for profiling
-//        TimeUnit.SECONDS.sleep(10);
+        return new RunConfig(pathToScan, minimumSize, maximumSize);
+    }
 
-        Saved saved = new Saved();
-        Deduplicator eleminateDuplicateOperation = new Deduplicator(saved);
-        new FdupesApplication(pathToScan).init(minimumSize, maximumSize)
-                                         .filterGlobal()
-                                         .filterCandidatePairs(eleminateDuplicateOperation);
-
-        log.info("finish: " + saved);
+    @RequiredArgsConstructor
+    @Getter
+    private static class RunConfig {
+        private final String pathToScan;
+        private final long minimumSize;
+        private final long maximumSize;
     }
 }
