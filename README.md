@@ -17,3 +17,6 @@ original: https://github.com/adrianlopezroche/fdupes
 ```bash
 java -jar target/fdupes*.jar <dir> [minimumFilesizeInMB [maximumFilesizeInMB]]
 ```
+# alternatives
+- original fdupe https://github.com/adrianlopezroche/fdupes
+- another java implementation https://github.com/cbismuth/fdupes-java
