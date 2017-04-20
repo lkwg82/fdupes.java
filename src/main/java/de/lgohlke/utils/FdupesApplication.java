@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import de.lgohlke.utils.filter.map.MapFilter;
 import de.lgohlke.utils.filter.map.NotSameFilesystemFilter;
 import de.lgohlke.utils.filter.map.SingleSizeFilter;
+import de.lgohlke.utils.filter.map.ZeroSizeFilter;
 import de.lgohlke.utils.filter.pair.*;
 import de.lgohlke.utils.status.Progress;
 import de.lgohlke.utils.status.SizeFormatter;
@@ -42,17 +43,10 @@ public class FdupesApplication {
     }
 
     private FdupesApplication filterGlobal() {
-        MapFilter zeroSizeFiles = sizeToFileMap -> sizeToFileMap.entrySet()
-                                                                .stream()
-                                                                .filter(entry -> entry.getKey() > 0L)
-                                                                .collect(Collectors.toMap(Map.Entry::getKey,
-                                                                                          Map.Entry::getValue));
-
-        List<MapFilter> filters = Lists.newArrayList(zeroSizeFiles,
+        List<MapFilter> filters = Lists.newArrayList(new ZeroSizeFilter(),
                                                      new SingleSizeFilter(),
                                                      new NotSameFilesystemFilter(runConfig.getPathToScan()));
-
-        for (MapFilter filter : filters) {
+        filters.forEach(filter -> {
             long oldSize = sumFilesize(sizeToFileMap);
             if (oldSize > 0) {
                 log.info("running {}", filter.getClass().getSimpleName());
@@ -61,8 +55,8 @@ public class FdupesApplication {
                 log.info(" filtered from {} -> {}", size(oldSize), size(newSize));
                 progress.reduce(oldSize - newSize);
             }
-//            log.info(progress.status());
-        }
+        });
+
         return this;
     }
 
@@ -122,7 +116,7 @@ public class FdupesApplication {
 
     public static void main(String... args) throws Exception {
 
-        RunConfig runConfig = buildRunConfig("/backup/wirt.lgohlke.de", "1", "3");
+        RunConfig runConfig = buildRunConfig(args);
 
         Saved saved = new Saved();
         new FdupesApplication(runConfig).init()
