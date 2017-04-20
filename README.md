@@ -1,3 +1,5 @@
+[![Build Status](https://api.travis-ci.org/lkwg82/fdupes.java.svg?branch=master)](https://api.travis-ci.org/lkwg82/fdupes.java.svg?branch=master)
+
 # fdupes
 sort of java port of fdupe
 
